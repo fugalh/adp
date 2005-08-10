@@ -2,7 +2,8 @@
 #include <stdio.h>
 %}
 
-%token EXT EQ COMMENT NL PRIO WORD WS
+%union { char *string; }
+%token EXT EQ COMMENT NL PRIO WORD WS STRING
 
 %%
 
@@ -24,24 +25,50 @@ ctxline
     ;
 statement
     : words EQ ws words
+    | words
     ;
 ext
     : EXT ws WORD exttail
     ;
 exttail
     : ws extbody
-    | appline
+    | ws appline
     ;
 extbody
     : '{' applist '}'
     ;
-appline
-    : ws PRIO ws words
-    | ws words
-    ;
 applist
-    : applist appline eol
+    : applist ws appline eol
     | /* empty */
+    ;
+appline
+    : PRIO ws app
+    | app
+    |
+    ;
+app
+    : WORD '(' ws appargs ')' ws
+    | WORD ',' ws appargs
+    | WORD '|' ws appargs
+    | WORD
+    ;
+appargs
+    : appargs ',' ws apparg
+    | appargs '|' ws apparg
+    | apparg
+    ;
+apparg
+    : appargl
+    | STRING
+    ;
+appargl
+    : words varref appargl
+    | varref appargl
+    | words
+    |
+    ;
+varref
+    : '$' '{' apparg '}' 
     ;
 eol
     : COMMENT NL

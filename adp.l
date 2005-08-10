@@ -1,18 +1,19 @@
 %{
 #include "adp.tab.h"
+#include <string.h>
 int lineno = 1;
 %}
 
 %%
 
-^[ \t]+	;
-[ \t]+			{ return WS; }
-;.*$			{ return COMMENT; }
-^[ \t]*\+?[0-9]+:	{ return PRIO; }
+[ \t]+			{ yylval.string = strdup(yytext); return WS; }
+;.*$			{ yylval.string = strdup(yytext); return COMMENT; }
+^[ \t]*\+?[0-9]+:	{ yylval.string = strdup(yytext); return PRIO; }
 ext|x|exten|extension	{ return EXT; }
 =>?			{ return EQ; }
 \n|\r\n?		{ lineno++; return NL; }
-[^\[\]\n=\${}; \t]+	{ return WORD; }
+[^\[\]\n=\${};\"',\|\(\)\t ]+	{ yylval.string = strdup(yytext); return WORD; }
+\"[^\"]*\"|\'[^']\'	{ yylval.string = strdup(yytext); return STRING; }
 . 			{ return yytext[0]; }
 
 %%
