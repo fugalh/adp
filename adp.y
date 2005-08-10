@@ -2,95 +2,65 @@
 #include <stdio.h>
 %}
 
-%token SWITCH INCLUDE IGNOREPAT EXT EQ COMMENT PRIO IDENT DOLBRACE CLOSEBRACE STRING NL 
+%token EXT EQ COMMENT NL PRIO WORD WS
 
 %%
 
-config
-    : config eol
-    | config context
-    | 
+adp
+    : adp context
+    | /* empty */
     ;
 context
-    : '[' ctxname ']' eol ctxlines
+    : '[' words ']' ws eol ctxlinelist
     ;
-ctxlines
-    : ctxlines ctxline eol
-    |
+ctxlinelist
+    : ws ctxline eol ctxlinelist
+    | 
     ;
 ctxline
-    : varassign
+    : statement
     | ext
-    | sw
-    | incl
-    | ignorepat 
+    | 
     ;
-varassign
-    : varname '=' val
-    ;
-sw
-    : SWITCH EQ val
-    ;
-incl
-    : INCLUDE EQ ctxname
-    ;
-ignorepat
-    : IGNOREPAT EQ extname
+statement
+    : words EQ ws words
     ;
 ext
-    : EXT extname '{' applist '}'
-    | EXT extname appline
+    : EXT ws WORD exttail
     ;
-applist
-    : applist eol
-    | applist appline
-    |
+exttail
+    : ws extbody
+    | appline
+    ;
+extbody
+    : '{' applist '}'
     ;
 appline
-    : prio app
-    | app
+    : ws PRIO ws words
+    | ws words
     ;
-app
-    : appname '(' appargs ')'
-    | appname ',' appargs
-    | appname
-    ;
-appargs
-    : appargs ',' val
-    | appargs '|' val
-    | val
-    ;
-val
-    : IDENT
-    | STRING
-    | varref
-    ;
-varref
-    : DOLBRACE val CLOSEBRACE
+applist
+    : applist appline eol
+    | /* empty */
     ;
 eol
     : COMMENT NL
     | NL
     ;
-prio
-    : '+' IDENT
+ws
+    : WS
+    |
     ;
-
-ctxname: IDENT
-       ;
-varname: IDENT
-       ;
-extname: IDENT
-       ;
-appname: IDENT
-       ;
-
+words
+    : words WORD ws
+    | WORD ws
+    ;
 %%
 
 extern FILE *yyin;
 
-int main(void)
+int main(int argc, char **argv)
 {
-    yydebug = 1;
+    if (argc > 1) yydebug = 1;
     do yyparse(); while(!feof(yyin));
 }

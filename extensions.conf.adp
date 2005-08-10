@@ -8,7 +8,9 @@ TRUNK=Zap/g2
 TRUNKMSD=1
 
 [iaxtel700]
-ext _91700XXXXXXX { Dial(IAX2/${IAXINFO}@iaxtel.com/${EXTEN:1}@iaxtel) }
+ext _91700XXXXXXX { 
+  Dial(IAX2/${IAXINFO}@iaxtel.com/${EXTEN:1}@iaxtel) 
+}
 
 [iaxprovider]
 ;switch IAX2/user:[key]@myserver/mycontext
