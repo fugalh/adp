@@ -1,5 +1,5 @@
-adp: adp.tab.c lex.yy.c
-	cc -o $@ adp.tab.c lex.yy.c -ly -ll
+adp: adp.tab.c lex.yy.c util.o
+	cc -g -o $@ adp.tab.c lex.yy.c util.o -ly -ll
 lex.yy.c: adp.l adp.tab.h
 	flex $<
 
