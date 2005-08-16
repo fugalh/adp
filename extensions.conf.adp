@@ -120,8 +120,9 @@ ext 1234 {
 ext 1235 Voicemail(u1234)
 
 ext 1236 {
-  Dial(Console/dsp)
-  Voicemail(u1234)
+1:   Dial(Console/dsp)
+     Voicemail(u1236)
+102: Voicemail(b1236)
 }
 
 ext # { 

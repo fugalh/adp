@@ -1,6 +1,11 @@
 %{
 #include <stdio.h>
 #include "util.h"
+#include <string.h>
+
+char *curext;
+int prio;
+
 %}
 
 %union { char *string; }
@@ -29,27 +34,33 @@ ctxline
     | { $$ = "" }
     ;
 statement
-    : words EQ ws words { $$ = strjoin(4,$1,$2,$3,$4); }
-    | words
+    : WORD ws EQ ws words { $$ = strjoin(4,$1,"=",$4,$5); }
+    | WORD ws words { $$ = strjoin(3,$1,"=",$3); }
     ;
 ext
-    : EXT ws WORD exttail { $$ = strjoin(4,$1,$2,$3,$4); }
+    : extdecl exttail { $$ = $2 }
+    ;
+extdecl
+    : EXT ws WORD { curext = strdup($3); prio = 1; }
     ;
 exttail
-    : ws extbody { $$ = strjoin(2,$1,$2); }
-    | ws appline { $$ = strjoin(2,$1,$2); }
+    : ws extbody { $$ = $2 }
+    | ws appline { $$ = $2 }
     ;
 extbody
-    : '{' applist '}' { $$ = strjoin(3,"{",$2,"}"); }
+    : '{' applist '}' { $$ = $2 }
     ;
 applist
-    : applist ws appline eol { $$ = strjoin(4,$1,$2,$3,$4); }
+    : applist ws appline eol { $$ = strjoin(2,$1,$3); }
     | { $$ = "" }
     ;
 appline
-    : PRIO ws app { $$ = strjoin(3,$1,$2,$3); }
-    | app
+    : prio app { asprintf(&$$, "exten => %s,%d,%s\n",curext,prio,$2); ++prio; }
+    | app { asprintf(&$$, "exten => %s,%d,%s\n",curext,prio,$1); ++prio }
     | { $$ = "" }
+    ;
+prio
+    : PRIO ws { prio = atoi($1); }
     ;
 app
     : WORD '(' ws appargs ')' ws { $$ = strjoin(6,$1,"(",$3,$4,")",$6); }
@@ -76,12 +87,12 @@ varref
     : '$' '{' apparg '}'  { $$ = strjoin(3,"${",$3,"}"); }
     ;
 eol
-    : COMMENT NL { $$ = strjoin(2,$1,$2); }
-    | NL
+    : COMMENT NL { $$ = strjoin(2,$1,"\n"); }
+    | NL { $$ = "\n"; }
     ;
 ws
     : WS
-    | { $$ = "" }
+    | { $$ = ""; }
     ;
 words
     : words WORD ws { $$ = strjoin(3,$1,$2,$3); }
@@ -93,12 +104,8 @@ extern FILE *yyin;
 
 int main(int argc, char **argv)
 {
+    curext = "s";
+    prio = 1;
     if (argc > 1) yydebug = 1;
-    char *a = "Hello";
-    char *b = ", ";
-    char *c = "world";
-    char *d = "!";
-    fprintf(stderr,"%s\n",strjoin(4,a,b,c,d));
-
     do yyparse(); while(!feof(yyin));
 }
