@@ -9,4 +9,4 @@ adp.tab.c: adp.y
 	bison -d -t -v $<
 
 clean:
-	rm -f adp.tab.* lex.yy.* adp.output
+	rm -f adp.tab.* lex.yy.* adp.output adp *.o
