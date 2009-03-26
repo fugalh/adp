@@ -18,6 +18,7 @@ int prio;
 
 adp
     : adp context
+    | adp eol
     | { $$ = "" }
     ;
 context
